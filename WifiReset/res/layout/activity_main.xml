@@ -27,23 +27,33 @@
         android:layout_below="@+id/tvStatus"
         android:text="@string/active" />
 
-    <TextView
-        android:id="@+id/tvHistory"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/swStatus"
-        android:layout_marginTop="24dp"
-        android:text="@string/history"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
     <ListView
         android:id="@+id/lvHistory"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/tvHistory"
+        android:layout_alignParentBottom="true"
         android:layout_below="@+id/tvHistory" >
 
     </ListView>
+
+    <TextView
+        android:id="@+id/tvNextReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/tvHistory"
+        android:layout_below="@+id/swStatus"
+        android:text="@string/next_reset"
+        android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/tvHistory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/swStatus"
+        android:layout_below="@+id/tvNextReset"
+        android:layout_marginTop="15dp"
+        android:text="@string/history"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </RelativeLayout>

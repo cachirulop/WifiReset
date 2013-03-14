@@ -9,5 +9,6 @@
     <string name="active">Active</string>
     <string name="history">History</string>
     <string name="status">Status</string>
+    <string name="next_reset">Next reset:</string>
 
 </resources>
