@@ -27,16 +27,6 @@
         android:layout_below="@+id/tvStatus"
         android:text="@string/active" />
 
-    <ListView
-        android:id="@+id/lvHistory"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/tvHistory"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@+id/tvHistory" >
-
-    </ListView>
-
     <TextView
         android:id="@+id/tvNextReset"
         android:layout_width="wrap_content"
@@ -47,6 +37,18 @@
         android:textStyle="italic" />
 
     <TextView
+        android:id="@+id/txNextResetValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tvNextReset"
+        android:layout_alignBottom="@+id/tvNextReset"
+        android:layout_alignRight="@+id/swStatus"
+        android:layout_marginLeft="15dp"
+        android:layout_toRightOf="@+id/tvNextReset"
+        android:textStyle="italic"
+        android:text="12:25 14/03/2013" />
+
+    <TextView
         android:id="@+id/tvHistory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -55,5 +57,16 @@
         android:layout_marginTop="15dp"
         android:text="@string/history"
         android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    <ListView
+        android:id="@+id/lvHistory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/tvHistory"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/tvHistory" >
+    </ListView>
+
+
 
 </RelativeLayout>
