@@ -25,7 +25,7 @@ import com.cachirulop.wifireset.entity.History;
  */
 public class HistoryManager {
 	
-	public static final String BROADCAST_HISTORY_MODIFIED = "history.list.modified";
+	public static final String BROADCAST_HISTORY_MODIFIED = "broadcast.history.modified";
 
 	public static List<History> getAll(Context ctx) {
 		Cursor c;

@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.TrafficStats;
 import android.net.wifi.WifiManager;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.cachirulop.wifireset.R;
 import com.cachirulop.wifireset.service.WifiResetService;
@@ -21,53 +22,66 @@ import com.cachirulop.wifireset.service.WifiResetService;
 public class WifiResetManager {
 	/** Intent executed by the android AlarmManager to reset the wifi connection */
 	private static PendingIntent _alarmIntent;
+	
+	public static final String BROADCAST_WIFIRESET_ENABLED = "broadcast.wifireset.enabled";
+	public static final String BROADCAST_WIFIRESET_DISABLED = "broadcast.wifireset.disabled";
+	public static final String BROADCAST_WIFIRESET_IN_USE = "broadcast.wifireset.inUse";
+	public static final String BROADCAST_WIFIRESET_IDLE = "broadcast.wifireset.idle";
+	public static final String BROADCAST_WIFIRESET_RESTARTED = "broadcast.wifireset.restarted";
 
 	/**
 	 * Reset the wifi connection if it is inactive.
 	 */
-	public static void reset (Context ctx) {
+	public static void reset (final Context ctx) {
 		HistoryManager.add(ctx, R.string.wifi_reseting);
-
+		Thread resetThread;
+		
+		resetThread = new Thread(new Runnable () {
+			public void run () {
+				resetWifi (ctx);
+			}
+		});
+		
+		resetThread.run();
+	}
+	
+	private static void resetWifi(Context ctx) {
 		WifiManager mgr;
 		
 		mgr = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
 		if (mgr.isWifiEnabled()) {
 			long rxBytes;
 			long txBytes;
+			long newRxBytes;
+			long newTxBytes;
 			
-			HistoryManager.add(ctx, "Wifi is enabled");
+			sendBroadcast(ctx, BROADCAST_WIFIRESET_ENABLED);
 
 			rxBytes = TrafficStats.getTotalRxBytes();
 			txBytes = TrafficStats.getTotalTxBytes();
 			
-			HistoryManager.add(ctx, String.format("Bytes: %d received, %d sended", rxBytes, txBytes));
-			
 			try {
+				// Wait 5 seconds to read the traffic statistics again
 				Thread.sleep(5000);
 			}
 			catch (InterruptedException ex) { }
 			
-			long newRxBytes;
-			long newTxBytes;
-
 			newRxBytes = TrafficStats.getTotalRxBytes();
 			newTxBytes = TrafficStats.getTotalTxBytes();
 			
-			HistoryManager.add(ctx, String.format("Bytes: %d received, %d sended", newRxBytes, newTxBytes));
-
 			if (rxBytes != newRxBytes || txBytes != newTxBytes) {
-				HistoryManager.add(ctx, "Wifi in usage");
+				sendBroadcast(ctx, BROADCAST_WIFIRESET_IN_USE);
 			}
 			else {
-				HistoryManager.add(ctx, "Wifi is idle, restarting");
+				sendBroadcast(ctx, BROADCAST_WIFIRESET_IDLE);
 				
 				mgr.reassociate();
 				
-				HistoryManager.add(ctx, "RESTARTED");
+				sendBroadcast(ctx, BROADCAST_WIFIRESET_RESTARTED);
 			}
 		}
 		else {
-			HistoryManager.add(ctx, "Wifi is not enabled");
+			sendBroadcast(ctx, BROADCAST_WIFIRESET_DISABLED);
 		}
 	}
 	
@@ -98,4 +112,9 @@ public class WifiResetManager {
         
         mgr.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), interval * 1000, _alarmIntent);
 	}
+	
+	private static void sendBroadcast(Context ctx, String msg) {
+		Intent intent = new Intent(msg);
+		LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);		
+	}	
 }
