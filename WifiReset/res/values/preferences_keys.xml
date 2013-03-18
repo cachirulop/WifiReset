@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="preferences_key_active">preferences.key.active</string>
+    <string name="preferences_key_autostart">preferences.key.autostart</string>
+	<string name="preferences_key_interval">preferences.key.interval</string>
+	<string name="preferences_key_notify">preferences.key.notify</string>
+</resources>

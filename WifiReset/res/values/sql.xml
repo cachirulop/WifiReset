@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (c) 2012 David Magro Martin.
+  All rights reserved. This program and the accompanying materials
+  are made available under the terms of the GNU Public License v3.0
+  which accompanies this distribution, and is available at
+  http://www.gnu.org/licenses/gpl.html
+  
+  Contributors:
+      David Magro Martin - initial API and implementation
+-->
+<resources>
+
+    <!-- Creates the wifireset database. Only the history table is needed -->
+    <string name="SQL_on_create">
+        CREATE TABLE history (id_history INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                              insert_date TIMESTAMP NOT NULL DEFAULT current_timestamp,
+                              message TEXT);
+    </string>
+    
+    <!-- Drop the history table. -->
+    <string name="SQL_on_upgrade">
+        DROP TABLE IF EXISTS history;
+    </string>
+    
+    <!-- Get all the history table records -->
+    <string name="SQL_history_get_all">
+        SELECT * 
+        FROM history
+        ORDER BY insert_date DESC
+    </string>
+        
+</resources>

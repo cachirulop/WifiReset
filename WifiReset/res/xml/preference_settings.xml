@@ -4,7 +4,7 @@
     <CheckBoxPreference
         android:summary="Run on start"
         android:title="@string/autostart"
-        android:defaultValue="true" />
+        android:defaultValue="true" android:key="@string/preferences_key_autostart"/>
 
     <ListPreference
         android:dialogTitle="@string/select_interval"
@@ -12,10 +12,10 @@
         android:entryValues="@array/list_exec_interval_value"
         android:summary="Select the time interval to reset the wifi"
         android:title="@string/run_interval"
-        android:defaultValue="300" />
+        android:defaultValue="300" android:key="@string/preferences_key_interval"/>
 
     <CheckBoxPreference 
         android:title="@string/show_notify_icon"
-        android:defaultValue="true" />
+        android:defaultValue="true" android:key="@string/preferences_key_notify"/>
 
 </PreferenceScreen>
