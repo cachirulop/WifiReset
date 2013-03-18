@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.cachirulop.wifireset.R;
-import com.cachirulop.wifireset.activity.SettingsActivity;
 
 
 /**

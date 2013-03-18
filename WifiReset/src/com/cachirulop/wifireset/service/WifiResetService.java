@@ -1,13 +1,11 @@
 package com.cachirulop.wifireset.service;
 
-import com.cachirulop.wifireset.R;
-import com.cachirulop.wifireset.manager.HistoryManager;
-import com.cachirulop.wifireset.manager.WifiResetManager;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.widget.Toast;
+
+import com.cachirulop.wifireset.manager.WifiResetManager;
 
 public class WifiResetService extends Service {
 	
@@ -19,7 +17,7 @@ public class WifiResetService extends Service {
 	
 	    return super.onStartCommand(intent,flags,startId);
 	}
-	
+		
 	@Override
 	public IBinder onBind(Intent intent) {
 		Toast.makeText(this, "WifiResetService.onBind()", Toast.LENGTH_LONG)

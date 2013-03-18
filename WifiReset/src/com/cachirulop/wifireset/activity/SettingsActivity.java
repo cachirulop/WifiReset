@@ -1,12 +1,9 @@
 package com.cachirulop.wifireset.activity;
 
-import com.cachirulop.wifireset.R;
-import com.cachirulop.wifireset.R.layout;
-import com.cachirulop.wifireset.R.menu;
-
-import android.os.Bundle;
 import android.app.Activity;
-import android.view.Menu;
+import android.os.Bundle;
+
+import com.cachirulop.wifireset.R;
 
 /**
  * Shows activity with the settings screen
