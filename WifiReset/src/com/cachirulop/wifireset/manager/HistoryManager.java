@@ -1,6 +1,7 @@
 package com.cachirulop.wifireset.manager;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.cachirulop.wifireset.R;
+import com.cachirulop.wifireset.broadcast.HistoryBroadcastReceiverManager;
+import com.cachirulop.wifireset.common.Util;
 import com.cachirulop.wifireset.data.WifiResetDataHelper;
 import com.cachirulop.wifireset.entity.History;
 
@@ -25,8 +28,6 @@ import com.cachirulop.wifireset.entity.History;
  */
 public class HistoryManager {
 	
-	public static final String BROADCAST_HISTORY_MODIFIED = "broadcast.history.modified";
-
 	public static List<History> getAll(Context ctx) {
 		Cursor c;
 		SQLiteDatabase db = null;
@@ -71,13 +72,33 @@ public class HistoryManager {
 			values.put("message", h.getMessage());
 
 			db.insert("history", null, values);
+			
+			if (Util.compareCalendar(SettingsManager.getLastCleanDate(ctx), Calendar.getInstance()) < 0) {
+				deleteOlderRow(ctx);
+				
+				SettingsManager.setLastCleanDate(ctx, new Date());
+			}
 
-			sendBroadcastHistoryModified(ctx);
+			HistoryBroadcastReceiverManager.sendBroadcastHistoryModified(ctx);
 		} finally {
 			if (db != null) {
 				db.close();
 			}
 		}		
+	}
+	
+	private static void deleteOlderRow (Context ctx) {
+		SQLiteDatabase db = null;
+
+		try {
+			db = new WifiResetDataHelper(ctx).getWritableDatabase();
+
+			db.execSQL(ctx.getString(R.string.SQL_history_clean));
+		} finally {
+			if (db != null) {
+				db.close();
+			}
+		}
 	}
 	
 	private static List<History> createHistoryList(Cursor c) {
@@ -105,8 +126,4 @@ public class HistoryManager {
 		return result;
 	}
 	
-	private static void sendBroadcastHistoryModified (Context ctx) {
-		Intent intent = new Intent(BROADCAST_HISTORY_MODIFIED);
-		LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);		
-	}
 }

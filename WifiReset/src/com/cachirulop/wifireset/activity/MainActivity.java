@@ -13,6 +13,10 @@ import android.widget.ListView;
 
 import com.cachirulop.wifireset.R;
 import com.cachirulop.wifireset.adapter.HistoryAdapter;
+import com.cachirulop.wifireset.broadcast.HistoryBroadcastReceiverManager;
+import com.cachirulop.wifireset.broadcast.IHistoryBroadcastReceiver;
+import com.cachirulop.wifireset.broadcast.IWifiBroadcastReceiver;
+import com.cachirulop.wifireset.broadcast.WifiBroadcastReceiverManager;
 import com.cachirulop.wifireset.manager.HistoryManager;
 import com.cachirulop.wifireset.manager.WifiResetManager;
 
@@ -21,7 +25,11 @@ import com.cachirulop.wifireset.manager.WifiResetManager;
  * 
  * @author david
  */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity 
+	implements IHistoryBroadcastReceiver, IWifiBroadcastReceiver {
+	
+	HistoryBroadcastReceiverManager mgrHistory;
+	WifiBroadcastReceiverManager mgrWifi;
 
 	/**
 	 * Creates the activity from the activity_main layout
@@ -33,8 +41,8 @@ public class MainActivity extends Activity {
         
         fillHistory ();
         
-        LocalBroadcastManager.getInstance(this).registerReceiver(_historyModifiedReceiver,
-        	      new IntentFilter(HistoryManager.BROADCAST_HISTORY_MODIFIED));
+        mgrHistory = new HistoryBroadcastReceiverManager(this, this);
+        mgrWifi = new WifiBroadcastReceiverManager(this, this);
         
         // TODO: Test the configuration
         WifiResetManager.startService(this);
@@ -105,11 +113,34 @@ public class MainActivity extends Activity {
 		lv = (ListView) findViewById(R.id.lvHistory);
 		lv.setAdapter(new HistoryAdapter(this));
     }
-    
-    private BroadcastReceiver _historyModifiedReceiver = new BroadcastReceiver() {
-    	  @Override
-    	  public void onReceive(Context context, Intent intent) {
-    		  refreshHistory();
-    	  }
-    };
+
+	@Override
+	public void wifiIsEnabled() {
+		HistoryManager.add(this, R.string.wifi_is_enabled);		
+	}
+
+	@Override
+	public void wifiIsDisabled() {
+		HistoryManager.add(this, R.string.wifi_is_disabled);		
+	}
+
+	@Override
+	public void wifiIsInUse() {
+		HistoryManager.add(this, R.string.wifi_is_in_use);		
+	}
+
+	@Override
+	public void wifiIsIdle() {
+		HistoryManager.add(this, R.string.wifi_is_idle);		
+	}
+
+	@Override
+	public void wifiRestarted() {
+		HistoryManager.add(this, R.string.wifi_restarted);		
+	}
+
+	@Override
+	public void historyModified() {
+		refreshHistory();
+	}   
 }

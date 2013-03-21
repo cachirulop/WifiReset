@@ -29,5 +29,12 @@
         FROM history
         ORDER BY insert_date DESC
     </string>
+    
+    <string name="SQL_history_clean">
+        <![CDATA[
+        DELETE history 
+        WHERE insert_date < date(\'now\')
+        ]]>
+    </string>
         
 </resources>

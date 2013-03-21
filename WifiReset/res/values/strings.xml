@@ -12,6 +12,11 @@
     
     <!-- Messages -->
     <string name="wifi_reseting">Reseting wifi connection</string>
+    <string name="wifi_is_enabled">Wifi is enabled</string>
+    <string name="wifi_is_disabled">Wifi is disabled</string>
+    <string name="wifi_is_in_use">Wifi is in use</string>
+    <string name="wifi_is_idle">Wifi is idle</string>
+    <string name="wifi_restarted">Wifi restarted</string>    
     
     <!-- Settings action -->
     <string name="active">Active</string>
