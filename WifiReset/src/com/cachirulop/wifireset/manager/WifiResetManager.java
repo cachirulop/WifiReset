@@ -1,6 +1,5 @@
 package com.cachirulop.wifireset.manager;
 
-import java.text.DateFormat;
 import java.util.Calendar;
 
 import android.app.AlarmManager;
@@ -10,10 +9,8 @@ import android.content.Intent;
 import android.net.TrafficStats;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
 
-import com.cachirulop.wifireset.R;
-import com.cachirulop.wifireset.broadcast.WifiBroadcastReceiverManager;
+import com.cachirulop.wifireset.broadcast.WifiResetBroadcastReceiverManager;
 import com.cachirulop.wifireset.common.Util;
 import com.cachirulop.wifireset.service.WifiResetService;
 
@@ -30,11 +27,18 @@ public class WifiResetManager {
 	 * Reset the wifi connection if it is inactive.
 	 */
 	public static void reset (final Context ctx) {
-		HistoryManager.add(ctx, R.string.wifi_reseting);
+		WifiResetBroadcastReceiverManager.sendBroadcastWifiResetReseting(ctx);
 		
 		resetWifi(ctx);
 	}
 	
+	/**
+	 * Reset the wifi connection if the is idle. 
+	 * Test the wifi status taking statistics of use, waiting 5 seconds
+	 * and reading the statistics again. 
+	 * 
+	 * @param ctx Execution context of the method (e.g. the Activity)
+	 */
 	private static void resetWifi(final Context ctx) {
 		final WifiManager mgr;
 		
@@ -43,7 +47,7 @@ public class WifiResetManager {
 			final long rxBytes;
 			final long txBytes;
 			
-			WifiBroadcastReceiverManager.sendBroadcastWifiIsEnabled(ctx);
+			WifiResetBroadcastReceiverManager.sendBroadcastWifiIsEnabled(ctx);
 
 			rxBytes = TrafficStats.getTotalRxBytes();
 			txBytes = TrafficStats.getTotalTxBytes();
@@ -62,21 +66,22 @@ public class WifiResetManager {
 					newTxBytes = TrafficStats.getTotalTxBytes();
 					
 					if (rxBytes != newRxBytes || txBytes != newTxBytes) {
-						WifiBroadcastReceiverManager.sendBroadcastWifiIsInUse(ctx);
+						WifiResetBroadcastReceiverManager.sendBroadcastWifiIsInUse(ctx);
 					}
 					else {
-						WifiBroadcastReceiverManager.sendBroadcastWifiIsIdle(ctx);
+						WifiResetBroadcastReceiverManager.sendBroadcastWifiIsIdle(ctx);
 						
-						mgr.reassociate();
+						mgr.setWifiEnabled(false);
+						mgr.setWifiEnabled(true);
 						
-						WifiBroadcastReceiverManager.sendBroadcastWifiRestarted(ctx);
+						WifiResetBroadcastReceiverManager.sendBroadcastWifiRestarted(ctx);
 					}
 				}
 			}
 			, 5000);
 		}
 		else {
-			WifiBroadcastReceiverManager.sendBroadcastWifiIsDisabled(ctx);
+			WifiResetBroadcastReceiverManager.sendBroadcastWifiIsDisabled(ctx);
 		}
 	}
 	
@@ -89,7 +94,7 @@ public class WifiResetManager {
         Calendar cal;
         int interval;
         
-        HistoryManager.add(ctx, R.string.starting_service);
+		WifiResetBroadcastReceiverManager.sendBroadcastWifiResetStarting(ctx);
     	
         interval = SettingsManager.getInterval(ctx);
     	wifiIntent = new Intent(ctx, WifiResetService.class);
@@ -101,11 +106,21 @@ public class WifiResetManager {
     	cal.setTimeInMillis(System.currentTimeMillis());
         cal.add(Calendar.SECOND, interval);
         
+		WifiResetBroadcastReceiverManager.sendBroadcastWifiResetNextReset(ctx, cal);
+/*
         HistoryManager.add(ctx, String.format("%s %s", 
         		ctx.getString(R.string.next_reset), 
         		DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(cal.getTime())));
-        
+*/        
         mgr.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), interval * 1000, _alarmIntent);
 	}
 	
+	/**
+	 * Stop the wifi service, stopping the alarm
+	 * 
+	 * @param ctx Execution context (e.g. Activity)
+	 */
+	public static void stopService (Context ctx) {
+		WifiResetBroadcastReceiverManager.sendBroadcastWifiResetStopping(ctx);
+	}
 }

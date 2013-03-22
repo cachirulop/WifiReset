@@ -30,11 +30,15 @@
         ORDER BY insert_date DESC
     </string>
     
-    <string name="SQL_history_clean">
+    <string name="SQL_history_delete_older_rows">
         <![CDATA[
-        DELETE history 
+        DELETE FROM history 
         WHERE insert_date < date(\'now\')
         ]]>
     </string>
         
+    <string name="SQL_history_clean">
+        DELETE FROM history 
+    </string>
+
 </resources>

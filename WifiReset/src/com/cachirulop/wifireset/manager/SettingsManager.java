@@ -1,7 +1,6 @@
 package com.cachirulop.wifireset.manager;
 
 import java.util.Calendar;
-import java.util.Date;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -73,19 +72,19 @@ public class SettingsManager {
 	 */
 	public static Calendar getLastCleanDate (Context ctx) {
 		long lastDate;
+		Calendar result;
 		
+		result = Calendar.getInstance();
+
 		lastDate = getPrefs(ctx).getLong(ctx.getString(R.string.preferences_key_last_clean_date), 0);
 		if (lastDate == 0) {
-			return Calendar.getInstance();
+			setLastCleanDate(ctx, result);
 		}
 		else {
-			Calendar result;
-			
-			result = Calendar.getInstance();
 			result.setTimeInMillis(lastDate);
-			
-			return result;
 		}
+
+		return result;
 	}
 	
 	/**
@@ -93,12 +92,12 @@ public class SettingsManager {
 	 * @param ctx
 	 * @param value
 	 */
-	public static void setLastCleanDate (Context ctx, Date value) {
+	public static void setLastCleanDate (Context ctx, Calendar value) {
 		SharedPreferences.Editor editor;
 		
 		editor = getPrefs(ctx).edit();
 		
-		editor.putLong(ctx.getString(R.string.preferences_key_last_clean_date), value.getTime());
+		editor.putLong(ctx.getString(R.string.preferences_key_last_clean_date), value.getTimeInMillis());
 		
 		editor.apply();
 	}

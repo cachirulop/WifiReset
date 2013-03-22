@@ -25,7 +25,8 @@
         android:layout_alignLeft="@+id/tvStatus"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/tvStatus"
-        android:text="@string/active" />
+        android:text="@string/active"
+        android:onClick="swStatusClicked" />
 
     <TextView
         android:id="@+id/tvNextReset"

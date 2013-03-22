@@ -23,6 +23,6 @@ public class Util {
 	}
 
 	public static boolean isEmulator() {
-		return Build.MODEL.contains("google_sdk") || Build.MODEL.contains("Emulator");  
+		return Build.MODEL.contains("sdk") || Build.MODEL.contains("Emulator");  
 	}
 }

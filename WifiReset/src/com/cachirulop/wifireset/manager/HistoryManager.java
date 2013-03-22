@@ -7,13 +7,11 @@ import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.cachirulop.wifireset.R;
-import com.cachirulop.wifireset.broadcast.HistoryBroadcastReceiverManager;
+import com.cachirulop.wifireset.broadcast.WifiResetBroadcastReceiverManager;
 import com.cachirulop.wifireset.common.Util;
 import com.cachirulop.wifireset.data.WifiResetDataHelper;
 import com.cachirulop.wifireset.entity.History;
@@ -74,12 +72,12 @@ public class HistoryManager {
 			db.insert("history", null, values);
 			
 			if (Util.compareCalendar(SettingsManager.getLastCleanDate(ctx), Calendar.getInstance()) < 0) {
-				deleteOlderRow(ctx);
+				deleteOlderRows(ctx);
 				
-				SettingsManager.setLastCleanDate(ctx, new Date());
+				SettingsManager.setLastCleanDate(ctx, Calendar.getInstance());
 			}
 
-			HistoryBroadcastReceiverManager.sendBroadcastHistoryModified(ctx);
+			WifiResetBroadcastReceiverManager.sendBroadcastHistoryModified(ctx);
 		} finally {
 			if (db != null) {
 				db.close();
@@ -87,13 +85,37 @@ public class HistoryManager {
 		}		
 	}
 	
-	private static void deleteOlderRow (Context ctx) {
+	/**
+	 * Delete all the rows before now
+	 * 
+	 * @param ctx
+	 */
+	private static void deleteOlderRows (Context ctx) {
+		executeSQL(ctx, R.string.SQL_history_delete_older_rows);
+	}
+	
+	/**
+	 * Delete all the rows in the history table
+	 * 
+	 * @param ctx Execution context
+	 */
+	public static void clean (Context ctx) {
+		executeSQL(ctx, R.string.SQL_history_clean);
+	}
+
+	/**
+	 * Execute an SQL statement on the database
+	 * 
+	 * @param ctx Execution context (e.g. the Activity)
+	 * @param sqlId Identifier of the SQL to execute
+	 */
+	private static void executeSQL(Context ctx, int sqlId) {
 		SQLiteDatabase db = null;
 
 		try {
 			db = new WifiResetDataHelper(ctx).getWritableDatabase();
 
-			db.execSQL(ctx.getString(R.string.SQL_history_clean));
+			db.execSQL(ctx.getString(sqlId));
 		} finally {
 			if (db != null) {
 				db.close();

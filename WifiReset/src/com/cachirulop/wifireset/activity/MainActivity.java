@@ -1,23 +1,23 @@
 package com.cachirulop.wifireset.activity;
 
+import java.text.DateFormat;
+import java.util.Calendar;
+
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
+import android.widget.Switch;
 
 import com.cachirulop.wifireset.R;
 import com.cachirulop.wifireset.adapter.HistoryAdapter;
-import com.cachirulop.wifireset.broadcast.HistoryBroadcastReceiverManager;
-import com.cachirulop.wifireset.broadcast.IHistoryBroadcastReceiver;
-import com.cachirulop.wifireset.broadcast.IWifiBroadcastReceiver;
-import com.cachirulop.wifireset.broadcast.WifiBroadcastReceiverManager;
+import com.cachirulop.wifireset.broadcast.IWifiResetBroadcastReceiver;
+import com.cachirulop.wifireset.broadcast.WifiResetBroadcastReceiverManager;
 import com.cachirulop.wifireset.manager.HistoryManager;
+import com.cachirulop.wifireset.manager.SettingsManager;
 import com.cachirulop.wifireset.manager.WifiResetManager;
 
 /**
@@ -26,10 +26,9 @@ import com.cachirulop.wifireset.manager.WifiResetManager;
  * @author david
  */
 public class MainActivity extends Activity 
-	implements IHistoryBroadcastReceiver, IWifiBroadcastReceiver {
+	implements IWifiResetBroadcastReceiver {
 	
-	HistoryBroadcastReceiverManager mgrHistory;
-	WifiBroadcastReceiverManager mgrWifi;
+	WifiResetBroadcastReceiverManager _broadcastManager;
 
 	/**
 	 * Creates the activity from the activity_main layout
@@ -41,11 +40,11 @@ public class MainActivity extends Activity
         
         fillHistory ();
         
-        mgrHistory = new HistoryBroadcastReceiverManager(this, this);
-        mgrWifi = new WifiBroadcastReceiverManager(this, this);
+        _broadcastManager = new WifiResetBroadcastReceiverManager(this, this);
         
-        // TODO: Test the configuration
-        WifiResetManager.startService(this);
+        if (SettingsManager.isActive(this)) {
+        	WifiResetManager.startService(this);
+        }
     }
 
     /**
@@ -72,6 +71,10 @@ public class MainActivity extends Activity
             case R.id.action_reset:
             	resetWifi();
             	return true;
+            	
+            case R.id.action_clean_history:
+            	cleanHistory();
+            	return true;
                 
             default:
                 return super.onOptionsItemSelected(item);
@@ -96,6 +99,15 @@ public class MainActivity extends Activity
     	refreshHistory();
     }
     
+    /**
+     * Clean the history listview
+     */
+    public void cleanHistory () {
+    	HistoryManager.clean(this);
+    	
+    	refreshHistory ();
+    }
+    
 	public void refreshHistory() {
 		ListView listView;
 
@@ -112,6 +124,20 @@ public class MainActivity extends Activity
     	
 		lv = (ListView) findViewById(R.id.lvHistory);
 		lv.setAdapter(new HistoryAdapter(this));
+    }
+    
+    public void swStatusClicked (View v) {
+    	boolean on;
+    	
+    	on = ((Switch) v).isChecked();
+    	if (on) {
+    		HistoryManager.add(this, R.string.wifireset_activated);
+        	WifiResetManager.startService(this);
+    	}
+    	else {
+    		HistoryManager.add(this, R.string.wifireset_deactivated);
+        	WifiResetManager.stopService(this);
+    	}
     }
 
 	@Override
@@ -142,5 +168,26 @@ public class MainActivity extends Activity
 	@Override
 	public void historyModified() {
 		refreshHistory();
+	}
+
+	@Override
+	public void wifiResetReseting() {
+		HistoryManager.add(this, R.string.wifireset_reseting);
+	}
+
+	@Override
+	public void wifiResetStarting() {
+		HistoryManager.add(this, R.string.wifireset_starting);
+	}
+
+	@Override
+	public void wifiREsetStopping() {
+		HistoryManager.add(this, R.string.wifireset_stopping);
+	}
+
+	@Override
+	public void wifiResetNextReset(Calendar nextReset) {
+		HistoryManager.add(this, String.format(getString (R.string.wifireset_reseting), 
+				DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(nextReset.getTime())));
 	}   
 }

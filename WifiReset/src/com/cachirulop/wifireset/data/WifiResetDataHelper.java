@@ -10,7 +10,7 @@ import com.cachirulop.wifireset.R;
 
 public class WifiResetDataHelper extends SQLiteOpenHelper {
 	/** Name of the database */
-    private static final String DATABASE_NAME = "wifireset";
+    private static final String DATABASE_NAME = "wifireset.db";
     
     /** Version of the database */
     private static final int DATABASE_VERSION = 1;
