@@ -7,14 +7,14 @@ import com.cachirulop.wifireset.R;
 
 /**
  * Shows activity with the settings screen
- *  
+ * 
  * @author david
- *
+ * 
  */
 public class SettingsActivity extends Activity {
 	/**
-	 * Load the settings screen. 
-	 * The screen is based on the activity_settings layout.
+	 * Load the settings screen. The screen is based on the activity_settings
+	 * layout.
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

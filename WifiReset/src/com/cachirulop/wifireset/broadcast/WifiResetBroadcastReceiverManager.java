@@ -24,6 +24,7 @@ public class WifiResetBroadcastReceiverManager {
 	// Wifi Reset service
 	private static final String BROADCAST_WIFIRESET_RESETING = "broadcast.wifireset.reseting";
 	private static final String BROADCAST_WIFIRESET_STARTING = "broadcast.wifireset.starting";
+	private static final String BROADCAST_WIFIRESET_STARTED = "broadcast.wifireset.started";
 	private static final String BROADCAST_WIFIRESET_STOPPING = "broadcast.wifireset.stopping";
 	private static final String BROADCAST_WIFIRESET_NEXT_RESET = "broadcast.wifireset.nextReset";
 	
@@ -62,38 +63,50 @@ public class WifiResetBroadcastReceiverManager {
 		mgr.registerReceiver(_broadcastReceiver, new IntentFilter(
 				BROADCAST_WIFIRESET_STARTING));
 		mgr.registerReceiver(_broadcastReceiver, new IntentFilter(
+				BROADCAST_WIFIRESET_STARTED));
+		mgr.registerReceiver(_broadcastReceiver, new IntentFilter(
 				BROADCAST_WIFIRESET_STOPPING));
 		mgr.registerReceiver(_broadcastReceiver, new IntentFilter(
 				BROADCAST_WIFIRESET_NEXT_RESET));
 
 		_receiver = receiver;
 	}
+	
+	public void unregister (Context ctx) {
+		LocalBroadcastManager mgr;
+
+		mgr = LocalBroadcastManager.getInstance(ctx);
+		
+		mgr.unregisterReceiver(_broadcastReceiver);
+	}
 
 	private BroadcastReceiver _broadcastReceiver = new BroadcastReceiver() {
 		@Override
-		public void onReceive(Context context, Intent intent) {
+		public void onReceive(Context ctx, Intent intent) {
 			String action;
 
 			action = intent.getAction();
 
 			if (BROADCAST_WIFI_ENABLED.equals(action)) {
-				_receiver.wifiIsEnabled();
+				_receiver.wifiIsEnabled(ctx);
 			} else if (BROADCAST_WIFI_DISABLED.equals(action)) {
-				_receiver.wifiIsDisabled();
+				_receiver.wifiIsDisabled(ctx);
 			} else if (BROADCAST_WIFI_IN_USE.equals(action)) {
-				_receiver.wifiIsInUse();
+				_receiver.wifiIsInUse(ctx);
 			} else if (BROADCAST_WIFI_IDLE.equals(action)) {
-				_receiver.wifiIsIdle();
+				_receiver.wifiIsIdle(ctx);
 			} else if (BROADCAST_WIFI_RESTARTED.equals(action)) {
-				_receiver.wifiRestarted();
+				_receiver.wifiRestarted(ctx);
 			} else if (BROADCAST_HISTORY_MODIFIED.equals(action)) {
-				_receiver.historyModified();
+				_receiver.historyModified(ctx);
 			} else if (BROADCAST_WIFIRESET_RESETING.equals(action)) {
-				_receiver.wifiResetReseting();
+				_receiver.wifiResetReseting(ctx);
 			} else if (BROADCAST_WIFIRESET_STARTING.equals(action)) {
-				_receiver.wifiResetStarting();
+				_receiver.wifiResetStarting(ctx);
+			} else if (BROADCAST_WIFIRESET_STARTED.equals(action)) {
+				_receiver.wifiResetStarted(ctx);
 			} else if (BROADCAST_WIFIRESET_STOPPING.equals(action)) {
-				_receiver.wifiREsetStopping();
+				_receiver.wifiResetStopping(ctx);
 			} else if (BROADCAST_WIFIRESET_NEXT_RESET.equals(action)) {
 				Calendar cal;
 				long nextResetTime;
@@ -102,7 +115,7 @@ public class WifiResetBroadcastReceiverManager {
 				cal = Calendar.getInstance();
 				cal.setTimeInMillis(nextResetTime);
 			
-				_receiver.wifiResetNextReset(cal);
+				_receiver.wifiResetNextReset(ctx, cal);
 			}
 		}
 	};
@@ -137,6 +150,10 @@ public class WifiResetBroadcastReceiverManager {
 	
 	public static void sendBroadcastWifiResetStarting(Context ctx) {
 		sendBroadcast(ctx, BROADCAST_WIFIRESET_STARTING);
+	}
+
+	public static void sendBroadcastWifiResetStarted(Context ctx) {
+		sendBroadcast(ctx, BROADCAST_WIFIRESET_STARTED);
 	}
 
 	public static void sendBroadcastWifiResetStopping(Context ctx) {

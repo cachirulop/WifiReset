@@ -28,12 +28,22 @@ public class SettingsManager {
 	}
 
 	/**
-	 * Returns if the service is active or not
+	 * Returns if the service is active or not, reading from the shared preferences
 	 * 
 	 * @return the shared preference value of the key R.string.preferences_key_active
 	 */
 	public static boolean isActive (Context ctx) {
 		return getPrefs(ctx).getBoolean(ctx.getString(R.string.preferences_key_active), true);
+	}
+	
+	/**
+	 * Set the the active value of the service in the shared preferences
+	 * 
+	 * @param ctx Execution context
+	 * @param active New value of the active shared preference
+	 */
+	public static void setActive (Context ctx, boolean active) {
+		setPrefBoolean(ctx, R.string.preferences_key_active, active);
 	}
 
 	/**
@@ -93,12 +103,57 @@ public class SettingsManager {
 	 * @param value
 	 */
 	public static void setLastCleanDate (Context ctx, Calendar value) {
+		setPrefLong(ctx, R.string.preferences_key_last_clean_date, value.getTimeInMillis());
+	}
+	
+	public static Calendar getNextResetTime (Context ctx) {
+		long lastDate;
+		Calendar result;
+		
+		result = Calendar.getInstance();
+
+		lastDate = getPrefs(ctx).getLong(ctx.getString(R.string.preferences_key_next_reset_time), 0);
+		if (lastDate == 0) {
+			result = null;
+		}
+		else {
+			result.setTimeInMillis(lastDate);
+		}
+
+		return result;
+	}
+
+	public static void setNextResetTime(Context ctx, Calendar value) {
+		setPrefLong(ctx, R.string.preferences_key_next_reset_time, value.getTimeInMillis());
+	}
+	
+	/**
+	 * Set a long value of the shared preferences.
+	 * 
+	 * @param ctx Execution context
+	 * @param key Name of the value to set
+	 * @param value New value of the shared preference
+	 */
+	public static void setPrefLong (Context ctx, int key, long value) {
 		SharedPreferences.Editor editor;
 		
 		editor = getPrefs(ctx).edit();
-		
-		editor.putLong(ctx.getString(R.string.preferences_key_last_clean_date), value.getTimeInMillis());
-		
+		editor.putLong(ctx.getString(key), value);
 		editor.apply();
 	}
+	
+	/**
+	 * Set a boolean value of the shared preferences.
+	 * 
+	 * @param ctx Execution context
+	 * @param key Name of the value to set
+	 * @param value New value of the shared preference
+	 */
+	public static void setPrefBoolean(Context ctx, int key, boolean value) {
+		SharedPreferences.Editor editor;
+		
+		editor = getPrefs(ctx).edit();
+		editor.putBoolean(ctx.getString(key), value);
+		editor.apply();
+	}	
 }

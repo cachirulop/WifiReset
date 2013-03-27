@@ -38,7 +38,7 @@
         android:textStyle="italic" />
 
     <TextView
-        android:id="@+id/txNextResetValue"
+        android:id="@+id/tvNextResetValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/tvNextReset"

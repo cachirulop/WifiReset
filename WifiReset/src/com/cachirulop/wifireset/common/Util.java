@@ -1,5 +1,6 @@
 package com.cachirulop.wifireset.common;
 
+import java.text.DateFormat;
 import java.util.Calendar;
 
 import android.os.Build;
@@ -24,5 +25,11 @@ public class Util {
 
 	public static boolean isEmulator() {
 		return Build.MODEL.contains("sdk") || Build.MODEL.contains("Emulator");  
+	}
+	
+	public static String getCalendarFormatted (Calendar cal) {
+		return DateFormat.getDateTimeInstance(DateFormat.MEDIUM,
+				DateFormat.SHORT).format(cal.getTime());
+		
 	}
 }

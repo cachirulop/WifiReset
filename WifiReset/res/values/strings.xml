@@ -20,8 +20,9 @@
     
     <string name="wifireset_reseting">Reseting wifi connection</string>
     <string name="wifireset_starting">Starting Wifi Reset service</string>
+    <string name="wifireset_started">Wifi Reset service already started</string>
     <string name="wifireset_stopping">Stopping Wifi Reset service</string>
-    <string name="wifireset_next_reset">Next reset at %</string>
+    <string name="wifireset_next_reset">Next reset at %s</string>
     <string name="wifireset_activated">Wifi Reset service is activated</string>
     <string name="wifireset_deactivated">Wifi Reset service is deactivated</string>
     
@@ -43,11 +44,11 @@
         <item>Every 60 minutes</item>
     </string-array>
     <string-array name="list_exec_interval_value">
-        <item>300</item>
-        <item>600</item>
-        <item>900</item>
-        <item>1800</item>
-        <item>3600</item>
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
     </string-array>
 
 </resources>
