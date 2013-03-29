@@ -11,7 +11,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.cachirulop.wifireset.R;
-import com.cachirulop.wifireset.broadcast.WifiResetBroadcastReceiverManager;
 import com.cachirulop.wifireset.common.Util;
 import com.cachirulop.wifireset.data.WifiResetDataHelper;
 import com.cachirulop.wifireset.entity.History;
@@ -77,7 +76,7 @@ public class HistoryManager {
 				SettingsManager.setLastCleanDate(ctx, Calendar.getInstance());
 			}
 
-			WifiResetBroadcastReceiverManager.sendBroadcastHistoryModified(ctx);
+			BroadcastManager.sendBroadcastHistoryAdded(ctx);
 		} finally {
 			if (db != null) {
 				db.close();

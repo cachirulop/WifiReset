@@ -3,6 +3,7 @@ package com.cachirulop.wifireset.activity;
 import java.util.Calendar;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,23 +16,20 @@ import android.widget.TextView;
 
 import com.cachirulop.wifireset.R;
 import com.cachirulop.wifireset.adapter.HistoryAdapter;
-import com.cachirulop.wifireset.broadcast.IWifiResetBroadcastReceiver;
-import com.cachirulop.wifireset.broadcast.WifiResetBroadcastReceiverManager;
 import com.cachirulop.wifireset.common.Util;
+import com.cachirulop.wifireset.manager.BroadcastManager;
 import com.cachirulop.wifireset.manager.HistoryManager;
 import com.cachirulop.wifireset.manager.SettingsManager;
 import com.cachirulop.wifireset.manager.WifiResetManager;
 import com.cachirulop.wifireset.manager.WifiResetNotificationManager;
 
 /**
- * Main Activity of the WifiReset app.
+ * Main Activity of the WifiReset application.
  * 
- * @author david
+ * @author dmagrom
  */
-public class MainActivity extends Activity implements
-		IWifiResetBroadcastReceiver {
-
-	WifiResetBroadcastReceiverManager _broadcastManager;
+public class MainActivity extends Activity {
+	private BroadcastReceiver _broadcastReceiver;
 
 	/**
 	 * Creates the activity from the activity_main layout
@@ -40,8 +38,12 @@ public class MainActivity extends Activity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
-		//WifiResetNotificationManager.register(this);
+
+		createBroadcastReceiver();
+
+		if (SettingsManager.isNotify(this)) {
+			WifiResetNotificationManager.start(this);
+		}
 
 		if (SettingsManager.isActive(this)) {
 			WifiResetManager.startService(this);
@@ -144,28 +146,53 @@ public class MainActivity extends Activity implements
 		Calendar nextReset;
 
 		nextReset = SettingsManager.getNextResetTime(this);
-		if (nextReset != null) {
-			setNextResetText(Util.getCalendarFormatted(nextReset));
-		}
+		setNextReset(nextReset);
 	}
 
-	/**
-	 * Creates the WifiResetBroadcastReceiverManager to receive the broadcast
-	 * from the service and the managers.
-	 */
+	private void createBroadcastReceiver() {
+		_broadcastReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context ctx, Intent intent) {
+				String action;
+
+				action = intent.getAction();
+
+				if (BroadcastManager.BROADCAST_HISTORY_ADDED.equals(action)
+						|| BroadcastManager.BROADCAST_HISTORY_CLEANED
+								.equals(action)) {
+					fillHistory();
+				} else if (BroadcastManager.BROADCAST_WIFIRESET_NEXT_RESET
+						.equals(action)) {
+					Calendar cal;
+					long nextResetTime;
+
+					nextResetTime = intent.getLongExtra(
+							BroadcastManager.PARAMETER_NEXT_RESET_TIME, 0);
+					cal = Calendar.getInstance();
+					cal.setTimeInMillis(nextResetTime);
+
+					setNextReset(cal);
+				}
+			}
+		};
+	}
+
 	private void registerBroadcasts() {
-		_broadcastManager = new WifiResetBroadcastReceiverManager(this, this);
+		String[] broadcastList = new String[] {
+				BroadcastManager.BROADCAST_HISTORY_ADDED,
+				BroadcastManager.BROADCAST_HISTORY_CLEANED,
+				BroadcastManager.BROADCAST_WIFIRESET_NEXT_RESET };
+
+		BroadcastManager.registerReceiverList(this, broadcastList,
+				_broadcastReceiver);
 	}
 
 	/**
-	 * Removes the broadscasts registered before to stop of receiving the
+	 * Removes the broadcasts registered before to stop of receiving the
 	 * messages
 	 */
 	private void unregisterBroadcasts() {
-		if (_broadcastManager != null) {
-			_broadcastManager.unregister(this);
-			_broadcastManager = null;
-		}
+		BroadcastManager.unregisterReceiver(this, _broadcastReceiver);
 	}
 
 	/**
@@ -173,11 +200,16 @@ public class MainActivity extends Activity implements
 	 * 
 	 * @param value
 	 */
-	private void setNextResetText(String value) {
+	private void setNextReset(Calendar value) {
 		TextView tv;
 
 		tv = (TextView) findViewById(R.id.tvNextResetValue);
-		tv.setText(value);
+
+		if (value != null) {
+			tv.setText(Util.getCalendarFormatted(value));
+		} else {
+			tv.setText("");
+		}
 	}
 
 	/**
@@ -210,74 +242,5 @@ public class MainActivity extends Activity implements
 		}
 
 		SettingsManager.setActive(this, on);
-	}
-
-	@Override
-	public void wifiIsEnabled(Context ctx) {
-		HistoryManager.add(this, R.string.wifi_is_enabled);
-	}
-
-	@Override
-	public void wifiIsDisabled(Context ctx) {
-		HistoryManager.add(this, R.string.wifi_is_disabled);
-	}
-
-	@Override
-	public void wifiIsInUse(Context ctx) {
-		HistoryManager.add(this, R.string.wifi_is_in_use);
-	}
-
-	@Override
-	public void wifiIsIdle(Context ctx) {
-		HistoryManager.add(this, R.string.wifi_is_idle);
-	}
-
-	@Override
-	public void wifiRestarted(Context ctx) {
-		HistoryManager.add(this, R.string.wifi_restarted);
-	}
-
-	@Override
-	public void historyModified(Context ctx) {
-		refreshHistory();
-	}
-
-	@Override
-	public void wifiResetReseting(Context ctx) {
-		HistoryManager.add(this, R.string.wifireset_reseting);
-	}
-
-	@Override
-	public void wifiResetStarting(Context ctx) {
-		HistoryManager.add(this, R.string.wifireset_starting);
-	}
-
-	@Override
-	public void wifiResetStarted(Context ctx) {
-		HistoryManager.add(this, R.string.wifireset_started);
-	}
-
-	@Override
-	public void wifiResetStopping(Context ctx) {
-		HistoryManager.add(this, R.string.wifireset_stopping);
-
-		setNextResetText("");
-	}
-
-	@Override
-	public void wifiResetNextReset(Context ctx, Calendar nextReset) {
-		String nextResetFormatted;
-
-		nextResetFormatted = Util.getCalendarFormatted(nextReset);
-
-		// Add history event
-		HistoryManager.add(this, String.format(
-				getString(R.string.wifireset_next_reset), nextResetFormatted));
-
-		// Update the text view
-		setNextResetText(nextResetFormatted);
-
-		// Save the value in the shared preferences
-		SettingsManager.setNextResetTime(this, nextReset);
 	}
 }

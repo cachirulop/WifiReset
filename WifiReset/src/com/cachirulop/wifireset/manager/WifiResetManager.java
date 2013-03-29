@@ -10,7 +10,6 @@ import android.net.TrafficStats;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 
-import com.cachirulop.wifireset.broadcast.WifiResetBroadcastReceiverManager;
 import com.cachirulop.wifireset.common.Util;
 import com.cachirulop.wifireset.service.WifiResetService;
 
@@ -26,15 +25,15 @@ public class WifiResetManager {
 	public static void reset(final Context ctx, boolean registerNextAlarm) {
 		final WifiManager mgr;
 
-		WifiResetBroadcastReceiverManager.sendBroadcastWifiResetReseting(ctx);
+		BroadcastManager.sendBroadcastWifiResetReseting(ctx);
 
 		mgr = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
 		if (mgr.isWifiEnabled() || Util.isEmulator()) {
-			WifiResetBroadcastReceiverManager.sendBroadcastWifiIsEnabled(ctx);
+			BroadcastManager.sendBroadcastWifiIsEnabled(ctx);
 
 			resetWifi(ctx, mgr);
 		} else {
-			WifiResetBroadcastReceiverManager.sendBroadcastWifiIsDisabled(ctx);
+			BroadcastManager.sendBroadcastWifiIsDisabled(ctx);
 		}
 
 		if (registerNextAlarm) {
@@ -70,18 +69,15 @@ public class WifiResetManager {
 				newTxBytes = TrafficStats.getTotalTxBytes();
 
 				if (rxBytes != newRxBytes || txBytes != newTxBytes) {
-					WifiResetBroadcastReceiverManager
-							.sendBroadcastWifiIsInUse(ctx);
+					BroadcastManager.sendBroadcastWifiIsInUse(ctx);
 				} else {
-					WifiResetBroadcastReceiverManager
-							.sendBroadcastWifiIsIdle(ctx);
+					BroadcastManager.sendBroadcastWifiIsIdle(ctx);
 
 					// mgr.setWifiEnabled(false);
 					// mgr.setWifiEnabled(true);
 					mgr.reassociate();
 
-					WifiResetBroadcastReceiverManager
-							.sendBroadcastWifiRestarted(ctx);
+					BroadcastManager.sendBroadcastWifiRestarted(ctx);
 				}
 			}
 		}, 5000);
@@ -92,13 +88,11 @@ public class WifiResetManager {
 	 */
 	public static void startService(Context ctx) {
 		if (!isServiceStarted(ctx)) {
-			WifiResetBroadcastReceiverManager
-					.sendBroadcastWifiResetStarting(ctx);
+			BroadcastManager.sendBroadcastWifiResetStarting(ctx);
 
 			reset(ctx, true);
 		} else {
-			WifiResetBroadcastReceiverManager
-					.sendBroadcastWifiResetStarted(ctx);
+			BroadcastManager.sendBroadcastWifiResetStarted(ctx);
 		}
 	}
 
@@ -123,8 +117,7 @@ public class WifiResetManager {
 		cal.setTimeInMillis(System.currentTimeMillis());
 		cal.add(Calendar.MINUTE, interval);
 
-		WifiResetBroadcastReceiverManager.sendBroadcastWifiResetNextReset(ctx,
-				cal);
+		BroadcastManager.sendBroadcastWifiResetNextReset(ctx, cal);
 
 		mgr.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), intent);
 	}
@@ -141,9 +134,11 @@ public class WifiResetManager {
 		PendingIntent intent;
 
 		wifiIntent = new Intent(ctx, WifiResetService.class);
-
+/*
 		intent = PendingIntent.getService(ctx, 0, wifiIntent,
 				PendingIntent.FLAG_NO_CREATE);
+*/
+		intent = PendingIntent.getBroadcast(ctx, 0, wifiIntent, PendingIntent.FLAG_NO_CREATE);
 
 		return (intent != null);
 	}
@@ -155,7 +150,7 @@ public class WifiResetManager {
 	 *            Execution context (e.g. Activity)
 	 */
 	public static void stopService(Context ctx) {
-		WifiResetBroadcastReceiverManager.sendBroadcastWifiResetStopping(ctx);
+		BroadcastManager.sendBroadcastWifiResetStopping(ctx);
 		PendingIntent intent;
 		AlarmManager mgr;
 
@@ -181,8 +176,10 @@ public class WifiResetManager {
 		Intent wifiIntent;
 
 		wifiIntent = new Intent(ctx, WifiResetService.class);
-
+/*
 		return PendingIntent.getService(ctx, 0, wifiIntent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
+*/
+		return PendingIntent.getBroadcast(ctx, 0, wifiIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 	}
 }
