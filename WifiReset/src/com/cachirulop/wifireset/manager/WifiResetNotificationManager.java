@@ -42,6 +42,10 @@ public class WifiResetNotificationManager {
 		sendNotification(ctx, null, resId);
 	}
 
+	public static void sendNotification(Context ctx, String msg) {
+		sendNotification(ctx, null, msg);
+	}
+
 	public static void sendNotification(Context ctx, Calendar nextReset, int resId) {
 		sendNotification (ctx, nextReset, ctx.getString(resId));
 	}
@@ -56,7 +60,12 @@ public class WifiResetNotificationManager {
 		builder = new Notification.Builder(ctx);
 		
 		if (nextReset != null) {
-			builder.setContentTitle(getNextResetString(ctx, nextReset));
+			if (nextReset.getTimeInMillis() == 0) {
+				builder.setContentTitle(ctx.getText(R.string.wifireset_deactivated));
+			}
+			else {
+				builder.setContentTitle(getNextResetString(ctx, nextReset));	
+			}
 		}
 	
 		if (msg != null) {

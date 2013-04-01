@@ -76,7 +76,7 @@ public class HistoryManager {
 				SettingsManager.setLastCleanDate(ctx, Calendar.getInstance());
 			}
 
-			BroadcastManager.sendBroadcastHistoryAdded(ctx);
+			BroadcastManager.sendBroadcastHistoryAdded(ctx, h);
 		} finally {
 			if (db != null) {
 				db.close();

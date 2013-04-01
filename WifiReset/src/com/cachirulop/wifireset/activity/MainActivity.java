@@ -21,7 +21,7 @@ import com.cachirulop.wifireset.manager.BroadcastManager;
 import com.cachirulop.wifireset.manager.HistoryManager;
 import com.cachirulop.wifireset.manager.SettingsManager;
 import com.cachirulop.wifireset.manager.WifiResetManager;
-import com.cachirulop.wifireset.manager.WifiResetNotificationManager;
+import com.cachirulop.wifireset.service.WifiResetService;
 
 /**
  * Main Activity of the WifiReset application.
@@ -40,21 +40,15 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 
 		createBroadcastReceiver();
-
-		if (SettingsManager.isNotify(this)) {
-			WifiResetNotificationManager.start(this);
-		}
-
-		if (SettingsManager.isActive(this)) {
-			WifiResetManager.startService(this);
+		
+		if (SettingsManager.isActive(this) && !WifiResetService.isServiceRunning(this)) {
+			WifiResetService.activate(this);
 		}
 	}
 
 	@Override
 	protected void onStart() {
-		fillHistory();
 		initControls();
-		registerBroadcasts();
 
 		super.onStart();
 	}
@@ -114,7 +108,7 @@ public class MainActivity extends Activity {
 	 * Force a reset wifi connection
 	 */
 	private void resetWifi() {
-		WifiResetManager.reset(this, false);
+		WifiResetManager.reset(this);
 		refreshHistory();
 	}
 
@@ -139,14 +133,18 @@ public class MainActivity extends Activity {
 	 */
 	private void initControls() {
 		Switch btn;
+		Calendar nextReset;
 
+		// Active button
 		btn = (Switch) findViewById(R.id.swStatus);
 		btn.setChecked(SettingsManager.isActive(this));
 
-		Calendar nextReset;
-
+		// Next reset time 
 		nextReset = SettingsManager.getNextResetTime(this);
 		setNextReset(nextReset);
+		
+		// History
+		fillHistory();
 	}
 
 	private void createBroadcastReceiver() {
@@ -163,21 +161,22 @@ public class MainActivity extends Activity {
 					fillHistory();
 				} else if (BroadcastManager.BROADCAST_WIFIRESET_NEXT_RESET
 						.equals(action)) {
-					Calendar cal;
+					Calendar cal = null;
 					long nextResetTime;
 
 					nextResetTime = intent.getLongExtra(
 							BroadcastManager.PARAMETER_NEXT_RESET_TIME, 0);
-					cal = Calendar.getInstance();
-					cal.setTimeInMillis(nextResetTime);
-
+					
+					if (nextResetTime != 0) {
+						cal = Calendar.getInstance();
+						cal.setTimeInMillis(nextResetTime);
+					}
+	
 					setNextReset(cal);
 				}
 			}
 		};
-	}
 
-	private void registerBroadcasts() {
 		String[] broadcastList = new String[] {
 				BroadcastManager.BROADCAST_HISTORY_ADDED,
 				BroadcastManager.BROADCAST_HISTORY_CLEANED,
@@ -208,7 +207,7 @@ public class MainActivity extends Activity {
 		if (value != null) {
 			tv.setText(Util.getCalendarFormatted(value));
 		} else {
-			tv.setText("");
+			tv.setText(this.getText(R.string.wifireset_deactivated));
 		}
 	}
 
@@ -235,10 +234,10 @@ public class MainActivity extends Activity {
 		on = ((Switch) v).isChecked();
 		if (on) {
 			HistoryManager.add(this, R.string.wifireset_activated);
-			WifiResetManager.startService(this);
+			WifiResetService.activate(this);
 		} else {
 			HistoryManager.add(this, R.string.wifireset_deactivated);
-			WifiResetManager.stopService(this);
+			WifiResetService.deactivate(this);
 		}
 
 		SettingsManager.setActive(this, on);
