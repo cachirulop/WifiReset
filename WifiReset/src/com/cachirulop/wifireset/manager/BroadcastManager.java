@@ -18,6 +18,7 @@ public class BroadcastManager {
 
 	// Wifi Reset service
 	public static final String BROADCAST_WIFIRESET_NEXT_RESET = "broadcast.wifireset.nextReset";
+	public static final String BROADCAST_WIFIRESET_RESET_DONE = "broadcast.wifireset.done";
 	
 	// Parameters
 	public static final String PARAMETER_NEXT_RESET_TIME = "nextResetTime";
@@ -60,6 +61,10 @@ public class BroadcastManager {
 
 	public static void sendBroadcastHistoryCleared(Context ctx) {
 		sendBroadcast(ctx, BROADCAST_HISTORY_CLEANED);
+	}
+	
+	public static void sendBroadcastWifiResetDone(Context ctx) {
+		sendBroadcast(ctx, BROADCAST_WIFIRESET_RESET_DONE);
 	}
 
 	private static void sendBroadcast(Context ctx, String msg) {

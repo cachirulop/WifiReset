@@ -5,6 +5,7 @@ import java.util.Calendar;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 
@@ -57,7 +58,7 @@ public class WifiResetNotificationManager {
 		Intent intent = new Intent(ctx, MainActivity.class);
 		PendingIntent pIntent = PendingIntent.getActivity(ctx, 0, intent, 0);
 		
-		builder = new Notification.Builder(ctx);
+		builder = getNotificationBuilder(ctx);
 		
 		if (nextReset != null) {
 			if (nextReset.getTimeInMillis() == 0) {
@@ -72,10 +73,32 @@ public class WifiResetNotificationManager {
 			builder.setContentText(msg);
 		}
 		
-		builder.setSmallIcon(R.drawable.ic_launcher);
-		builder.setContentIntent(pIntent);
-		
 		notificationManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
 		notificationManager.notify(NOTIFICATION_WIFIRESET, builder.getNotification());
 	}
+	
+	public static void startForegroundNotification (Service svc) {
+		Notification.Builder builder;
+		
+		builder = getNotificationBuilder(svc);
+
+		svc.startForeground(NOTIFICATION_WIFIRESET, builder.getNotification());
+	}
+	
+	private static Notification.Builder getNotificationBuilder(Context ctx) {
+		Notification.Builder builder;
+		
+		Intent intent = new Intent(ctx, MainActivity.class);
+		PendingIntent pIntent = PendingIntent.getActivity(ctx, 0, intent, 0);
+		
+		builder = new Notification.Builder(ctx);
+		
+		builder.setSmallIcon(R.drawable.ic_launcher);
+		builder.setContentIntent(pIntent);
+
+		return builder;
+	}
 }
+
+
+

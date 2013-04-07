@@ -68,6 +68,8 @@ public class WifiResetManager {
 
 					HistoryManager.add(ctx, R.string.wifi_restarted);
 				}
+				
+				BroadcastManager.sendBroadcastWifiResetDone(ctx);
 			}
 		}, 5000);
 	}

@@ -3,8 +3,8 @@ package com.cachirulop.wifireset.service;
 import java.util.Calendar;
 
 import android.app.AlarmManager;
+import android.app.IntentService;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,123 +17,66 @@ import com.cachirulop.wifireset.manager.SettingsManager;
 import com.cachirulop.wifireset.manager.WifiResetManager;
 import com.cachirulop.wifireset.manager.WifiResetNotificationManager;
 
-public class WifiResetService extends Service {
-	private BroadcastReceiver _broadcastReceiver;
-	
-	@Override
-	public void onCreate() {
-		Log.d("WifiReset", "WifiResetService.onCreate");
-		
-		createBroadcastReceiver();
+public class WifiResetService extends IntentService {
+	public static final String ACTION_START = "action.start";
+	public static final String ACTION_ALARM = "action.alarm";
 
-		super.onCreate();
+	public WifiResetService(String name) {
+		super(name);
 	}
-
-	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d("WifiReset", "WifiResetService.onStartCommand");
-		
-		WifiResetManager.reset(this);
-		
-		registerAlarm (this);
-
-		return super.onStartCommand(intent, flags, startId);
+	
+	public WifiResetService() {
+		super(WifiResetService.class.getSimpleName());		
 	}
 	
 	@Override
-	public IBinder onBind(Intent intent) {
-		return null;
-	}
-	
-	@Override
-	public void onDestroy() {
-		Log.d("WifiReset", "WifiResetService.onDestroy");
-
-		BroadcastManager.unregisterReceiver(this, _broadcastReceiver);
+	protected void onHandleIntent(Intent intent) {
+		String action;
 		
-		super.onDestroy();
-	}
-	
-	private void createBroadcastReceiver() {
-		_broadcastReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context ctx, Intent intent) {
-				String action;
-
-				action = intent.getAction();
-
-				if (BroadcastManager.BROADCAST_HISTORY_ADDED.equals(action)) {
-					String msg;
-					
-					msg = intent.getStringExtra(BroadcastManager.PARAMETER_HISTORY_MESSAGE);
-					
-					WifiResetNotificationManager.sendNotification(ctx, msg);
-				} else if (BroadcastManager.BROADCAST_WIFIRESET_NEXT_RESET
-						.equals(action)) {
-					Calendar cal;
-					long nextResetTime;
-
-					nextResetTime = intent.getLongExtra(BroadcastManager.PARAMETER_NEXT_RESET_TIME, 0);
-					cal = Calendar.getInstance();
-					cal.setTimeInMillis(nextResetTime);
-
-					WifiResetNotificationManager.sendNotification(ctx, cal);
-				}
+		action = intent.getAction();
+		
+		Log.d(WifiResetService.class.getSimpleName(), 
+				String.format("WifiResetService.onStartCommand: %s", action));
+		
+		if (ACTION_START.equals(action)) {
+			if (!isServiceRunning()) {
+				registerAlarm();
 			}
-		};
-
-		String[] broadcastList = new String[] {
-				BroadcastManager.BROADCAST_HISTORY_ADDED,
-				BroadcastManager.BROADCAST_HISTORY_CLEANED,
-				BroadcastManager.BROADCAST_WIFIRESET_NEXT_RESET };
-
-		BroadcastManager.registerReceiverList(this, broadcastList,
-				_broadcastReceiver);
+		}
+		else if (ACTION_ALARM.equals(action)) {
+			WifiResetManager.reset(this);
+			registerAlarm();
+		}
 	}
 	
-	public static void activate(Context ctx) {
-		registerAlarm(ctx);
-	}
-	
-	public static void deactivate(Context ctx) {
-		unregisterAlarm(ctx);
-	}	
-	
-	public static void registerAlarm (Context ctx) {
+	public void registerAlarm () {
 		PendingIntent pIntent;
 		Intent svcIntent;
 		AlarmManager mgr;
 		Calendar cal;
 		int interval;
 
-		Log.d("WifiReset", "Registering alarm");
-		mgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+		Log.d(WifiResetService.class.getSimpleName(), "Registering alarm");
+		mgr = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
 		
-		svcIntent = new Intent(ctx, WifiResetService.class);
-		pIntent = PendingIntent.getService(ctx, 0, svcIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+		svcIntent = new Intent(this, WifiResetService.class);
+		svcIntent.setAction(ACTION_ALARM);
+		
+		pIntent = PendingIntent.getService(this, 0, svcIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-		interval = SettingsManager.getInterval(ctx);
+		interval = SettingsManager.getInterval(this);
 		
 		cal = Calendar.getInstance();
 		cal.setTimeInMillis(System.currentTimeMillis());
 		cal.set(Calendar.SECOND, 0);
 		cal.add(Calendar.MINUTE, interval);
 
-		BroadcastManager.sendBroadcastWifiResetNextReset(ctx, cal);
+		BroadcastManager.sendBroadcastWifiResetNextReset(this, cal);
+		SettingsManager.setNextResetTime(this, cal);
 
-		Log.d("WifiReset", "Next reset: " + Util.getCalendarFormatted(cal));
+		Log.d(WifiResetService.class.getSimpleName(), "Next reset: " + Util.getCalendarFormatted(cal));
 		
 		mgr.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pIntent);
-	}
-	
-	public static boolean isServiceRunning (Context ctx) {
-		PendingIntent pIntent;
-		Intent svcIntent;
-
-		svcIntent = new Intent(ctx, WifiResetService.class);
-		pIntent = PendingIntent.getService(ctx, 0, svcIntent, PendingIntent.FLAG_NO_CREATE);
-		
-		return pIntent != null;
 	}
 	
 	public static void unregisterAlarm(Context ctx) {
@@ -141,23 +84,26 @@ public class WifiResetService extends Service {
 		Intent svcIntent;
 		AlarmManager mgr;
 
-		Log.d("WifiReset", "Unregistering alarm");
+		Log.d(WifiResetService.class.getSimpleName(), "Unregistering alarm");
 		
 		mgr = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
 		
 		svcIntent = new Intent(ctx, WifiResetService.class);
 		pIntent = PendingIntent.getService(ctx, 0, svcIntent, PendingIntent.FLAG_NO_CREATE);
-		if (pIntent != null) {
-			Log.d("WifiReset", "Service is running, cancel alarm and intent");
 
-			BroadcastManager.sendBroadcastWifiResetNextReset(ctx, null);
+		BroadcastManager.sendBroadcastWifiResetNextReset(ctx, null);
+		SettingsManager.setNextResetTime(ctx, null);
 
-			mgr.cancel(pIntent);
-			ctx.stopService(svcIntent);
-			pIntent.cancel();
-		}
-		else {
-			Log.d("WifiReset", "Service is not running, do nothing");
-		}
+		mgr.cancel(pIntent);
+		ctx.stopService(svcIntent);
+		pIntent.cancel();
+	}
+	
+	public boolean isServiceRunning () {
+		Calendar nextReset;
+		
+		nextReset = SettingsManager.getNextResetTime(this);
+		
+		return (nextReset != null) & (Calendar.getInstance().before(nextReset));				
 	}
 }

@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,8 +42,8 @@ public class MainActivity extends Activity {
 
 		createBroadcastReceiver();
 		
-		if (SettingsManager.isActive(this) && !WifiResetService.isServiceRunning(this)) {
-			WifiResetService.activate(this);
+		if (SettingsManager.isActive(this)) {
+			startWifiResetService();
 		}
 	}
 
@@ -148,12 +149,17 @@ public class MainActivity extends Activity {
 	}
 
 	private void createBroadcastReceiver() {
+		Log.d(MainActivity.class.getSimpleName(), "Creating broadcast receiver");
+		
 		_broadcastReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context ctx, Intent intent) {
 				String action;
 
 				action = intent.getAction();
+
+				Log.d(MainActivity.class.getSimpleName(), 
+						String.format ("Receiving broadcast: %s", action));
 
 				if (BroadcastManager.BROADCAST_HISTORY_ADDED.equals(action)
 						|| BroadcastManager.BROADCAST_HISTORY_CLEANED
@@ -233,13 +239,23 @@ public class MainActivity extends Activity {
 
 		on = ((Switch) v).isChecked();
 		if (on) {
+			startWifiResetService();
 			HistoryManager.add(this, R.string.wifireset_activated);
-			WifiResetService.activate(this);
 		} else {
 			HistoryManager.add(this, R.string.wifireset_deactivated);
 			WifiResetService.deactivate(this);
 		}
 
 		SettingsManager.setActive(this, on);
+	}
+	
+	public void startWifiResetService () {
+		Intent i;
+		
+		i = new Intent(this, WifiResetService.class);
+		i.setAction(WifiResetService.ACTION_START);
+		
+		startService(i);
+		// WifiResetService.activate(this);
 	}
 }

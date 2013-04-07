@@ -14,8 +14,8 @@
     <!-- Messages -->
     <string name="wifi_is_enabled">Wifi is enabled</string>
     <string name="wifi_is_disabled">Wifi is disabled</string>
-    <string name="wifi_is_in_use">Wifi is in use</string>
-    <string name="wifi_is_idle">Wifi is idle</string>
+    <string name="wifi_is_in_use">Can\'t restart wifi, it\'s in use</string>
+    <string name="wifi_is_idle">Wifi is idle, restarting it</string>
     <string name="wifi_restarted">Wifi restarted</string>    
     
     <string name="wifireset_reseting">Reseting wifi connection</string>
