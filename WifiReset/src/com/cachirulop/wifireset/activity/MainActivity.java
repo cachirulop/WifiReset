@@ -243,7 +243,7 @@ public class MainActivity extends Activity {
 			HistoryManager.add(this, R.string.wifireset_activated);
 		} else {
 			HistoryManager.add(this, R.string.wifireset_deactivated);
-			WifiResetService.deactivate(this);
+			//WifiResetService.deactivate(this);
 		}
 
 		SettingsManager.setActive(this, on);
